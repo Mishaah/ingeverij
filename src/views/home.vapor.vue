@@ -12,7 +12,7 @@
 <style scoped>
 p.subtitle{
     line-height: 0.7;
-    font-size: 15;
+    font-size: 11;
     font-style: italic;
 }
 </style>
