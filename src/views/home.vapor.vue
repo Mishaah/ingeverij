@@ -1,8 +1,10 @@
 <template>
-<h1>De ingeverij</h1>
-<p class="subtitle">is in opbouw...</p>
+<body>
+    <h1>De ingeverij</h1>
+    <p class="subtitle">is in opbouw...</p>
+    <p>overvloed6@hotmail.com</p>
+</body>
 
-<p>overvloed6@hotmail.com</p>
 </template>
 
 <script setup>
