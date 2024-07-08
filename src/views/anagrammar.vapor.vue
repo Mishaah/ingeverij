@@ -1,20 +1,20 @@
-<template>
-
-    <body>
-        <div class="anagrid">
-            <div class="item item1-1"> </div>
-            <div class="item item2-2"> </div>
-            <div class="item item3-3">g</div>
-            <div class="item item2-1"> </div>
-            <div class="item item2-2">o</div>
-            <div class="item item2-3"> </div>
-            <div class="item item3-1">d</div>
-            <div class="item item3-2"> </div>
-            <div class="item item3-3"> </div>
-
-        </div>
-    </body>
-</template>
+<!-- <template> -->
+<!--  -->
+    <!-- <body> -->
+        <!-- <div class="anagrid"> -->
+            <!-- <div class="item item1-1"> </div> -->
+            <!-- <div class="item item2-2"> </div> -->
+            <!-- <div class="item item3-3">g</div> -->
+            <!-- <div class="item item2-1"> </div> -->
+            <!-- <div class="item item2-2">o</div> -->
+            <!-- <div class="item item2-3"> </div> -->
+            <!-- <div class="item item3-1">d</div> -->
+            <!-- <div class="item item3-2"> </div> -->
+            <!-- <div class="item item3-3"> </div> -->
+<!--  -->
+        <!-- </div> -->
+    <!-- </body> -->
+<!-- </template> -->
 
 <script setup>
 
