@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/static/web-icon.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ingeverij</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/static/web-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingeverij</title>
+  <script type="text/javascript">
+    window.onload = function () {
+      var redirect = new URLSearchParams(window.location.search).get('redirect');
+      if (redirect) {
+        var newUrl = window.location.origin + redirect;
+        window.history.replaceState(null, null, newUrl);
+      }
+    };
+  </script>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>

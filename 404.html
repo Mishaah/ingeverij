@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Page Not Found</title>
+  <script type="text/javascript">
+    // This script will redirect any 404 page back to the main index.html page
+    (function() {
+      var pathname = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+
+      // Redirect to index.html, preserving the original path, search and hash
+      var newUrl = window.location.protocol + "//" + window.location.host + "/index.html?redirect=" + encodeURIComponent(pathname + search + hash);
+      window.location.replace(newUrl);
+    })();
+  </script>
+</head>
+<body>
+  <h1>Page Not Found</h1>
+  <p>Redirecting...</p>
+</body>
+</html>
