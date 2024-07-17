@@ -4,7 +4,7 @@
         <h1>De ingeverij</h1>
         <p class="subtitle">is in opbouw... <br>
             <a title="overvloed6@hotmail.com"
-                href="mailto:overvloed6@hotmail.com?subject=Mail from Our Site">Email ons</a>
+                href="mailto:overvloed6@hotmail.com">Email ons</a>
         </p>
 
     </body>
