@@ -1,93 +1,136 @@
 <template>
-    <div id="app">
-        <div class="board">
-            <div v-for="piece in pieces" :key="piece.id" :class="['piece', { active: piece.active }]"
-                :style="{ top: piece.top + 'px', left: piece.left + 'px' }" @mousedown="onMouseDown(piece, $event)">
-            </div>
+
+
+    <!-- <div class="anagrid" id="anagrid" :style="gridStyles" > -->
+    <!--  -->
+    <!-- </div> -->
+    <div class="anagrid" :style="{
+        '--grid-rows': baseAnagram.length,
+        '--grid-columns': baseAnagram.length
+    }">
+    <!-- zoek een manier om de letters dynamisch te tekenen dmv svg of emoji's, iig moet het veld een vierkant zijn. -->
+        <div v-for="item in gridItems" :key="item.id" class="item">
+{{ item.name }}
         </div>
     </div>
+    <div>
+        <h1>Anagram</h1>
+        <pre>{{ anagram }}</pre>
+    </div>
+    <div>
+        <h1>Base Anagram</h1>
+        <pre>{{ baseAnagram }}</pre>
+    </div>
+    <div>
+        <h1>Base Anagram Length</h1>
+        <pre>{{ baseAnagram.length }}</pre>
+    </div>
+    <div>
+        <h1>Anagram List</h1>
+        <pre>{{ anagrams }}</pre>
+    </div>
+    <div>
+        <h1>Anagram List Length</h1>
+        <pre>{{ anagrams.length }}</pre>
+    </div>
+    <div>
+        <h1>Dictionary List</h1>
+        <pre>{{ dictionary }}</pre>
+    </div>
+
+
 </template>
 
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
 
-const router = useRouter()
-const route = useRoute()
+import { ref, onMounted, computed } from 'vue';
 
-import { ref, onMounted, onUnmounted } from 'vue';
-const pieces = ref([
-    { id: 1, top: 50, left: 50, active: false },
-    { id: 2, top: 150, left: 150, active: false },
-    // Add more pieces as needed
-]);
+const anagrams = ref([]);
+const dictionary = ref('');
 
-const selectedPiece = ref(null);
-const mouseOffset = ref({ x: 0, y: 0 });
-const mouseHeldDown = ref(false);
+const anagram = ref('');
+const baseAnagram = ref('');
 
-const onMouseDown = (piece, event) => {
-    mouseHeldDown.value = true;
-    selectedPiece.value = piece;
-    piece.active = true;
+const gridItems = computed(() => {
+    let tempArray = []
 
-    const pieceRect = event.target.getBoundingClientRect();
-    mouseOffset.value.x = event.clientX - pieceRect.left;
-    mouseOffset.value.y = event.clientY - pieceRect.top;
-
-    // Add event listeners for mousemove and mouseup when a piece is selected
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-};
-
-const onMouseUp = () => {
-    if (selectedPiece.value) {
-        selectedPiece.value.active = false;
-        selectedPiece.value = null;
+    let size = baseAnagram.value.length * baseAnagram.value.length
+    for (let i = 0; i < size; i++) {
+        tempArray.push({ name: 'a', id: Math.random + '-id' })
     }
-    mouseHeldDown.value = false;
+    // baseAnagram.value.split('').forEach((letter)=>{tempArray.push({name:letter, id:Math.random+'-id'})})
+    return tempArray
+}
 
-    // Remove the global event listeners when the piece is released
-    window.removeEventListener('mousemove', onMouseMove);
-    window.removeEventListener('mouseup', onMouseUp);
-};
+)
 
-const onMouseMove = (event) => {
-    if (mouseHeldDown.value && selectedPiece.value) {
-        selectedPiece.value.top = event.clientY - mouseOffset.value.y;
-        selectedPiece.value.left = event.clientX - mouseOffset.value.x;
+const setupBoard = async () => {
+    await fetchAnagrams();
+    chooseAnagram();
+    //addInvSpots();
+    //addPieces();
+}
+const fetchAnagrams = async () => {
+    try {
+        const response = await fetch('/english_anagrams_simple.txt');
+        const data = await response.text();
+        anagrams.value = data.split(/\r\n|\r|\n/);
+        chooseAnagram();
+    } catch (error) {
+        console.error('Error fetching anagrams:', error);
     }
 };
+const fetchDictionary = async () => {
+    try {
+        const response = await fetch('/english_dictionary.txt');
+        const data = await response.text();
+        dictionary.value = data;
+    } catch (error) {
+        console.error('Error fetching dictionary:', error);
+    }
+};
+const chooseAnagram = () => {
+    if (anagrams.value.length > 0) {
+        anagram.value = anagrams.value[Math.floor(Math.random() * anagrams.value.length)]
+        baseAnagram.value = anagram.value.match(/^(\S+)\s(.*)/).slice(1)[0].split("").sort().join("");
+    }
+}
 
-// Add event listeners to handle global mouse up event to prevent pieces from getting stuck
-onMounted(() => {
-    window.addEventListener('mouseup', onMouseUp);
-});
-
-// Remove event listeners when the component is unmounted
-onUnmounted(() => {
-    window.removeEventListener('mouseup', onMouseUp);
-    window.removeEventListener('mousemove', onMouseMove);
-});
+onMounted(setupBoard);
+onMounted(fetchDictionary);
 </script>
 
 <style scoped>
-.board {
-    position: relative;
-    width: 600px;
-    height: 600px;
-    border: 1px solid #000;
+pre {
+    white-space: pre-wrap;
 }
 
-.piece {
-    position: absolute;
-    width: 50px;
-    height: 50px;
-    background-color: blue;
-    cursor: pointer;
+body {
+    align-items: center;
+    justify-items: center;
+    display: grid;
 }
 
-.piece.active {
-    background-color: red;
-    z-index: 10;
+.anagrid {
+    display: grid;
+    width: 80vmin;
+    height: 80vmin;
+    aspect-ratio: 1;
+    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    align-items: center;
+    justify-items: center;
+    background-color: white;
+    border: 2px solid black;
+}
+
+.item {
+    box-sizing: content-box;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid black;
+    width: 100%;
+    height: 100%;
 }
 </style>
