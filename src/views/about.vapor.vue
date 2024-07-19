@@ -1,16 +1,34 @@
 <template>
 
-
     <!-- <div class="anagrid" id="anagrid" :style="gridStyles" > -->
     <!--  -->
     <!-- </div> -->
+    <div class="drop-zone" @drop="onDrop($event, 1)" @dragenter.prevent @dragover.prevent>
+        <div v-for="item in getList(1)" :key="item.id" class="drag-el" draggable="true"
+            @dragstart="startDrag($event, item)">
+            {{ item.title }}
+        </div>
+    </div>
+    <div class="drop-zone" @drop="onDrop($event, 2)" @dragenter.prevent @dragover.prevent>
+        <div v-for="item in getList(2)" :key="item.id" class="drag-el" draggable="true"
+            @dragstart="startDrag($event, item)">
+            {{ item.title }}
+        </div>
+    </div>
+
+
+
+    <p><strong>Previous Index: </strong> {{ oldIndex }}</p>
+    <p><strong>New Index: </strong> {{ newIndex }}</p>
+
+
     <div class="anagrid" :style="{
         '--grid-rows': baseAnagram.length,
         '--grid-columns': baseAnagram.length
     }">
-    <!-- zoek een manier om de letters dynamisch te tekenen dmv svg of emoji's, iig moet het veld een vierkant zijn. -->
+        <!-- zoek een manier om de letters dynamisch te tekenen dmv svg of emoji's, iig moet het veld een vierkant zijn. -->
         <div v-for="item in gridItems" :key="item.id" class="item">
-{{ item.name }}
+            {{ item.name }}
         </div>
     </div>
     <div>
@@ -51,6 +69,21 @@ const dictionary = ref('');
 const anagram = ref('');
 const baseAnagram = ref('');
 
+const oldIndex = ref('')
+const newIndex = ref('')
+
+const items = ref([
+    { id: 0, title: 'Item A', list: 1 },
+    { id: 1, title: 'Item B', list: 1 },
+    { id: 2, title: 'Item C', list: 1 },
+    { id: 3, title: 'Item D', list: 2 },
+    { id: 4, title: 'Item E', list: 2 },
+])
+
+const getList = (list) => {
+    return items.value.filter((item) => item.list == list)
+}
+
 const gridItems = computed(() => {
     let tempArray = []
 
@@ -63,6 +96,18 @@ const gridItems = computed(() => {
 }
 
 )
+
+const startDrag = (event, item) => {
+    console.log(item)
+    event.dataTransfer.dropEffect = 'move'
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('itemID', item.id)
+}
+const onDrop = (event, list) => {
+    const itemID = event.dataTransfer.getData('itemID')
+    const item = items.value.find((item) => item.id == itemID)
+    item.list = list
+}
 
 const setupBoard = async () => {
     await fetchAnagrams();
@@ -132,5 +177,20 @@ body {
     border: 1px solid black;
     width: 100%;
     height: 100%;
+}
+
+.drop-zone {
+    width: 50%;
+    margin: 50px auto;
+    background-color: lightgray;
+    padding: 10px;
+    min-height: 10px;
+}
+
+.drag-el {
+    background-color: aqua;
+    color: white;
+    padding: 50px;
+    margin-bottom: 10px;
 }
 </style>
