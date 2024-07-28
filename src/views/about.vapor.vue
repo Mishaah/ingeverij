@@ -3,18 +3,19 @@
     <!-- <div class="anagrid" id="anagrid" :style="gridStyles" > -->
     <!--  -->
     <!-- </div> -->
-    <div class="drop-zone" @drop="onDrop($event, 1)" @dragenter.prevent @dragover.prevent>
-        <div v-for="item in getList(1)" :key="item.id" class="drag-el" draggable="true"
-            @dragstart="startDrag($event, item)">
-            {{ item.title }}
+    <div v-for="item in items">
+        <div class="spot-grid" @drop="onDrop($event, item.spot)" @dragenter.prevent @dragover.prevent>
+            <div class="piece" draggable="true" @dragstart="startDrag($event, item)" :key="item.spot">
+                {{ getPiece(item.id) }}
+            </div>
         </div>
     </div>
-    <div class="drop-zone" @drop="onDrop($event, 2)" @dragenter.prevent @dragover.prevent>
+    <!-- <div class="drop-zone" @drop="onDrop($event, 2)" @dragenter.prevent @dragover.prevent>
         <div v-for="item in getList(2)" :key="item.id" class="drag-el" draggable="true"
             @dragstart="startDrag($event, item)">
             {{ item.title }}
         </div>
-    </div>
+    </div> -->
 
 
 
@@ -61,7 +62,7 @@
 
 <script setup>
 
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 
 const anagrams = ref([]);
 const dictionary = ref('');
@@ -72,16 +73,45 @@ const baseAnagram = ref('');
 const oldIndex = ref('')
 const newIndex = ref('')
 
-const items = ref([
-    { id: 0, title: 'Item A', list: 1 },
-    { id: 1, title: 'Item B', list: 1 },
-    { id: 2, title: 'Item C', list: 1 },
-    { id: 3, title: 'Item D', list: 2 },
-    { id: 4, title: 'Item E', list: 2 },
-])
+const pieces = computed(() => {
+    let computedPieces = []
 
-const getList = (list) => {
-    return items.value.filter((item) => item.list == list)
+    let amountOfPieces = baseAnagram.value.length
+
+    for (let i = 0; i < amountOfPieces; i++) {
+        computedPieces.push({ id: i, char: baseAnagram.value[i], spot: i })
+    }
+    return computedPieces
+})
+const spots = computed(() => {
+    let computedSpots = []
+    let i = 0
+
+    let amountOfInvSpots = baseAnagram.value.length
+
+    for (i; i < amountOfInvSpots; i++) {
+        computedSpots.push({ id: i, piece: i })
+    }
+
+    let amountOfGridSpots = (baseAnagram.value.length * baseAnagram.value.length)
+
+    for (i; i < (amountOfGridSpots + amountOfInvSpots); i++) {
+        computedSpots.push({ id: i, piece: -1 })
+    }
+    return computedSpots
+})
+
+const getPiece = (pieceID) => {
+    return pieces.value.filter((piece) => piece.id == pieceID)
+}
+const getPieceFromSpot = (spotID) => {
+    return pieces.value.filter((piece) => piece.spot.id == spotID)
+}
+const getSpot = (spotID) => {
+    return spots.value.filter((spot) => spot.id == spotID)
+}
+const getSpotFromPiece = (pieceID) => {
+    return spots.value.filter((spot) => spot.piece.id == pieceID)
 }
 
 const gridItems = computed(() => {
@@ -103,10 +133,15 @@ const startDrag = (event, item) => {
     event.dataTransfer.effectAllowed = 'move'
     event.dataTransfer.setData('itemID', item.id)
 }
-const onDrop = (event, list) => {
+const onDrop = (event, id) => {
+    // const itemID = event.dataTransfer.getData('itemID')
+    // const item = items.value.find((item) => item.id == itemID)
+    // item.list = list
     const itemID = event.dataTransfer.getData('itemID')
     const item = items.value.find((item) => item.id == itemID)
-    item.list = list
+    const item2 = items.value.find((item) => item.spot == itemID)
+    item2.spot = item.spot
+    item.spot = id
 }
 
 const setupBoard = async () => {
@@ -179,7 +214,7 @@ body {
     height: 100%;
 }
 
-.drop-zone {
+.spot-grid {
     width: 50%;
     margin: 50px auto;
     background-color: lightgray;
@@ -187,7 +222,7 @@ body {
     min-height: 10px;
 }
 
-.drag-el {
+.piece {
     background-color: aqua;
     color: white;
     padding: 50px;
