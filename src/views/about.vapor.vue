@@ -1,37 +1,38 @@
 <template>
 
-    <!-- <div class="anagrid" id="anagrid" :style="gridStyles" > -->
-    <!--  -->
-    <!-- </div> -->
-    <div v-for="item in items">
-        <div class="spot-grid" @drop="onDrop($event, item.spot)" @dragenter.prevent @dragover.prevent>
-            <div class="piece" draggable="true" @dragstart="startDrag($event, item)" :key="item.spot">
-                {{ getPiece(item.id) }}
-            </div>
-        </div>
-    </div>
-    <!-- <div class="drop-zone" @drop="onDrop($event, 2)" @dragenter.prevent @dragover.prevent>
-        <div v-for="item in getList(2)" :key="item.id" class="drag-el" draggable="true"
-            @dragstart="startDrag($event, item)">
-            {{ item.title }}
-        </div>
-    </div> -->
-
-
-
-    <p><strong>Previous Index: </strong> {{ oldIndex }}</p>
-    <p><strong>New Index: </strong> {{ newIndex }}</p>
-
-
-    <div class="anagrid" :style="{
+    <div class="spot-grid" :style="{
         '--grid-rows': baseAnagram.length,
         '--grid-columns': baseAnagram.length
     }">
-        <!-- zoek een manier om de letters dynamisch te tekenen dmv svg of emoji's, iig moet het veld een vierkant zijn. -->
-        <div v-for="item in gridItems" :key="item.id" class="item">
-            {{ item.name }}
+        <div v-for="spot in spots.slice(baseAnagram.length)" :key="spot.id" class="spot" @drop="onDrop($event, spot.id)"
+            @dragenter.prevent @dragover.prevent>
+            <div v-if="spot.piece" :key="spot.piece.id" class="piece" @dragstart="startDrag($event, spot.piece.id)"
+                draggable="true">
+                <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle" dominant-baseline="middle">
+                    <text x="50" y="50" font-size="300%">
+                        {{ spot.piece.char }}
+                    </text>
+                </svg>
+            </div>
         </div>
     </div>
+    <div class="spot-inv" :style="{
+        '--grid-rows': 1,
+        '--grid-columns': baseAnagram.length
+    }">
+        <div v-for="spot in spots.slice(0, baseAnagram.length)" :key="spot.id" class="spot"
+            @drop="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
+            <div v-if="spot.piece" :key="spot.piece.id" class="piece" @dragstart="startDrag($event, spot.piece.id)"
+                draggable="true">
+                <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle" dominant-baseline="middle">
+                    <text x="50" y="50" font-size="300%">
+                        {{ spot.piece.char }}
+                    </text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
     <div>
         <h1>Anagram</h1>
         <pre>{{ anagram }}</pre>
@@ -62,93 +63,53 @@
 
 <script setup>
 
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 const anagrams = ref([]);
 const dictionary = ref('');
 
-const anagram = ref('');
-const baseAnagram = ref('');
+let anagram = ref('');
+let baseAnagram = ref('');
 
-const oldIndex = ref('')
-const newIndex = ref('')
+let pieces = ref([])
+let spots = ref([])
 
-const pieces = computed(() => {
-    let computedPieces = []
-
-    let amountOfPieces = baseAnagram.value.length
-
-    for (let i = 0; i < amountOfPieces; i++) {
-        computedPieces.push({ id: i, char: baseAnagram.value[i], spot: i })
-    }
-    return computedPieces
-})
-const spots = computed(() => {
-    let computedSpots = []
-    let i = 0
-
-    let amountOfInvSpots = baseAnagram.value.length
-
-    for (i; i < amountOfInvSpots; i++) {
-        computedSpots.push({ id: i, piece: i })
-    }
-
-    let amountOfGridSpots = (baseAnagram.value.length * baseAnagram.value.length)
-
-    for (i; i < (amountOfGridSpots + amountOfInvSpots); i++) {
-        computedSpots.push({ id: i, piece: -1 })
-    }
-    return computedSpots
-})
-
-const getPiece = (pieceID) => {
-    return pieces.value.filter((piece) => piece.id == pieceID)
-}
-const getPieceFromSpot = (spotID) => {
-    return pieces.value.filter((piece) => piece.spot.id == spotID)
-}
-const getSpot = (spotID) => {
-    return spots.value.filter((spot) => spot.id == spotID)
-}
-const getSpotFromPiece = (pieceID) => {
-    return spots.value.filter((spot) => spot.piece.id == pieceID)
-}
-
-const gridItems = computed(() => {
-    let tempArray = []
-
-    let size = baseAnagram.value.length * baseAnagram.value.length
-    for (let i = 0; i < size; i++) {
-        tempArray.push({ name: 'a', id: Math.random + '-id' })
-    }
-    // baseAnagram.value.split('').forEach((letter)=>{tempArray.push({name:letter, id:Math.random+'-id'})})
-    return tempArray
-}
-
-)
-
-const startDrag = (event, item) => {
-    console.log(item)
+const startDrag = (event, pieceID) => {
+    console.log("piece ID: " + pieceID)
+    const oldSpotID = spots.value.findIndex(spot => spot.piece && spot.piece.id === pieceID);
     event.dataTransfer.dropEffect = 'move'
     event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('itemID', item.id)
+    event.dataTransfer.setData('pieceID', pieceID)
+    event.dataTransfer.setData('oldSpotID', oldSpotID)
 }
-const onDrop = (event, id) => {
-    // const itemID = event.dataTransfer.getData('itemID')
-    // const item = items.value.find((item) => item.id == itemID)
-    // item.list = list
-    const itemID = event.dataTransfer.getData('itemID')
-    const item = items.value.find((item) => item.id == itemID)
-    const item2 = items.value.find((item) => item.spot == itemID)
-    item2.spot = item.spot
-    item.spot = id
+const onDrop = (event, spotID) => {
+    console.log("spot ID: " + spotID)
+    const pieceID = event.dataTransfer.getData('pieceID')
+    const oldSpotID = event.dataTransfer.getData('oldSpotID')
+    const draggedPiece = pieces.value[pieceID]
+    const oldSpot = spots.value[oldSpotID]
+    const newSpot = spots.value[spotID]
+
+    if (draggedPiece && oldSpot && newSpot) {
+        console.log("setting piece " + pieceID + " to spot " + spotID);
+
+        newSpot.piece = { ...draggedPiece };
+        oldSpot.piece = null;
+
+        spots.value = [...spots.value];
+    }
+    else {
+        console.log("drag failed because missing data: ")
+        console.log(draggedPiece)
+        console.log(oldSpot)
+        console.log(newSpot)
+    }
 }
 
 const setupBoard = async () => {
     await fetchAnagrams();
-    chooseAnagram();
-    //addInvSpots();
-    //addPieces();
+    createPieces();
+    createSpots(pieces.value);
 }
 const fetchAnagrams = async () => {
     try {
@@ -175,6 +136,31 @@ const chooseAnagram = () => {
         baseAnagram.value = anagram.value.match(/^(\S+)\s(.*)/).slice(1)[0].split("").sort().join("");
     }
 }
+const createPieces = () => {
+    let newPieces = []
+
+    let amountOfPieces = baseAnagram.value.length
+
+    for (let i = 0; i < amountOfPieces; i++) {
+        newPieces.push({ id: i, char: baseAnagram.value[i] })
+    }
+    pieces.value = newPieces
+}
+const createSpots = (createdPieces) => {
+    let newSpots = []
+    let i = 0
+
+    let amountOfInvSpots = baseAnagram.value.length
+    let amountOfGridSpots = (baseAnagram.value.length * baseAnagram.value.length)
+
+    for (i; i < amountOfInvSpots; i++) {
+        newSpots.push({ id: i, piece: createdPieces[i] })
+    }
+    for (i; i < (amountOfGridSpots + amountOfInvSpots); i++) {
+        newSpots.push({ id: i, piece: null })
+    }
+    spots.value = newSpots
+}
 
 onMounted(setupBoard);
 onMounted(fetchDictionary);
@@ -191,7 +177,7 @@ body {
     display: grid;
 }
 
-.anagrid {
+.spot-grid {
     display: grid;
     width: 80vmin;
     height: 80vmin;
@@ -202,9 +188,24 @@ body {
     justify-items: center;
     background-color: white;
     border: 2px solid black;
+    margin-top: 20px;
 }
 
-.item {
+.spot-inv {
+    display: grid;
+    width: 80vmin;
+    height: calc(80vmin / var(--grid-columns));
+    aspect-ratio: 1;
+    grid-template-rows: repeat(var(--grid-rows), 1fr);
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    align-items: center;
+    justify-items: center;
+    background-color: white;
+    border: 2px solid black;
+    margin-top: 20px;
+}
+
+.piece {
     box-sizing: content-box;
     display: grid;
     justify-content: center;
@@ -212,20 +213,17 @@ body {
     border: 1px solid black;
     width: 100%;
     height: 100%;
+    user-select: none;
 }
 
-.spot-grid {
-    width: 50%;
-    margin: 50px auto;
-    background-color: lightgray;
-    padding: 10px;
-    min-height: 10px;
-}
-
-.piece {
-    background-color: aqua;
-    color: white;
-    padding: 50px;
-    margin-bottom: 10px;
+.spot {
+    box-sizing: content-box;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid black;
+    width: 100%;
+    height: 100%;
+    user-select: none;
 }
 </style>
