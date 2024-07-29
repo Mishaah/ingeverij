@@ -1,6 +1,8 @@
 <template>
 
-<button type="button" @click="resetGrid()">Click Me!</button> 
+    <button type="button" @click="resetGrid()">reset grid</button>
+    <button type="button" @click="validateGrid()">validate grid</button>
+    <button type="button" @click="setupGrid()">new anagram</button>
 
     <div class="spot-grid" :style="{
         '--grid-rows': baseAnagram.length,
@@ -114,8 +116,9 @@ const onDrop = (event, spotID) => {
     }
 }
 
-const setupBoard = async () => {
-    await fetchAnagrams();
+const setupGrid = async () => {
+    if (anagrams.value.length == 0) await fetchAnagrams();
+    chooseAnagram(); // 18 is easy example
     createPieces();
     createSpots(pieces.value);
 }
@@ -124,7 +127,6 @@ const fetchAnagrams = async () => {
         const response = await fetch('/english_anagrams_simple.txt');
         const data = await response.text();
         anagrams.value = data.split(/\r\n|\r|\n/);
-        chooseAnagram();
     } catch (error) {
         console.error('Error fetching anagrams:', error);
     }
@@ -138,11 +140,16 @@ const fetchDictionary = async () => {
         console.error('Error fetching dictionary:', error);
     }
 };
-const chooseAnagram = () => {
-    if (anagrams.value.length > 0) {
-        anagram.value = anagrams.value[Math.floor(Math.random() * anagrams.value.length)]
-        baseAnagram.value = anagram.value.match(/^(\S+)\s(.*)/).slice(1)[0].split("").sort().join("");
+const chooseAnagram = (index = -1) => {
+    if (anagrams.value.length == 0) return
+    if (index >= 0 && index <= (anagrams.value.length - 1)) {
+        anagram.value = anagrams.value[index]
     }
+    else {
+        anagram.value = anagrams.value[Math.floor(Math.random() * anagrams.value.length)]
+    }
+    baseAnagram.value = anagram.value.match(/^(\S+)\s(.*)/).slice(1)[0].split("").sort().join("");
+    console.log(anagram.value)
 }
 const createPieces = () => {
     let newPieces = []
@@ -175,16 +182,47 @@ const resetGrid = () => {
     let amountOfInvSpots = baseAnagram.value.length
     let amountOfGridSpots = (baseAnagram.value.length * baseAnagram.value.length)
 
-    for(i; i < amountOfInvSpots; i++)
-    {
+    for (i; i < amountOfInvSpots; i++) {
         spots.value[i].piece = { ...pieces.value[i] };
     }
     for (i; i < (amountOfGridSpots + amountOfInvSpots); i++) {
         spots.value[i].piece = null;
     }
 }
+const validateGrid = () => {
+    const readWordXA = readGrid(true, true)
+    const readWordXD = readGrid(true, false) 
+    const readWordYA = readGrid(false, true) 
+    const readWordYD = readGrid(false, false)
 
-onMounted(setupBoard);
+    const XAIsWord = (dictionary.value.indexOf(readWordXA) != -1)
+    const XDIsWord = (dictionary.value.indexOf(readWordXD) != -1)
+    const YAIsWord = (dictionary.value.indexOf(readWordYA) != -1)
+    const YDIsWord = (dictionary.value.indexOf(readWordYD) != -1)
+
+    console.log("is " + ((XAIsWord) ? "" : "not ")+ "a word read horizontal ascending: " + readWordXA)
+    console.log("is " + ((XDIsWord) ? "" : "not ")+ "a word read horizontal descending: " + readWordXD)
+    console.log("is " + ((YAIsWord) ? "" : "not ")+ "a word read vertical ascending: " + readWordYA)
+    console.log("is " + ((YDIsWord) ? "" : "not ")+ "a word read vertical descending: " + readWordYD)
+}
+const readGrid = (horizontal, ascending) => {
+    const size = baseAnagram.value.length
+
+    let readWord = ""
+    let x, y
+
+    for (y = (ascending) ? 0 : size - 1; y < size && y >= 0; y += (ascending) ? 1 : -1) {
+
+        for (x = (ascending) ? 0 : size - 1; x < size && x >= 0; x += (ascending) ? 1 : -1) {
+            const readPiece = (spots.value[(size + y * ((horizontal) ? 1 : size) + x * ((horizontal) ? size : 1))]).piece
+            const readLetter = (readPiece == null) ? "" : readPiece.char
+            readWord += readLetter
+        }
+    }
+    return readWord
+}
+
+onMounted(setupGrid);
 onMounted(fetchDictionary);
 </script>
 
