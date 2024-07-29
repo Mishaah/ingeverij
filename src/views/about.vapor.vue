@@ -1,5 +1,7 @@
 <template>
 
+<button type="button" @click="resetGrid()">Click Me!</button> 
+
     <div class="spot-grid" :style="{
         '--grid-rows': baseAnagram.length,
         '--grid-columns': baseAnagram.length
@@ -76,27 +78,33 @@ let spots = ref([])
 
 const startDrag = (event, pieceID) => {
     console.log("piece ID: " + pieceID)
+
     const oldSpotID = spots.value.findIndex(spot => spot.piece && spot.piece.id === pieceID);
+    console.log("old spot ID: " + pieceID)
+
     event.dataTransfer.dropEffect = 'move'
     event.dataTransfer.effectAllowed = 'move'
+
     event.dataTransfer.setData('pieceID', pieceID)
     event.dataTransfer.setData('oldSpotID', oldSpotID)
 }
 const onDrop = (event, spotID) => {
     console.log("spot ID: " + spotID)
-    const pieceID = event.dataTransfer.getData('pieceID')
+
+    const draggedPieceID = event.dataTransfer.getData('pieceID')
     const oldSpotID = event.dataTransfer.getData('oldSpotID')
-    const draggedPiece = pieces.value[pieceID]
+
+    if (oldSpotID == spotID) return
+
+    const draggedPiece = pieces.value[draggedPieceID]
     const oldSpot = spots.value[oldSpotID]
     const newSpot = spots.value[spotID]
 
     if (draggedPiece && oldSpot && newSpot) {
-        console.log("setting piece " + pieceID + " to spot " + spotID);
+        console.log("setting piece " + draggedPieceID + " to spot " + spotID);
 
+        oldSpot.piece = newSpot.piece == null ? null : { ...newSpot.piece };
         newSpot.piece = { ...draggedPiece };
-        oldSpot.piece = null;
-
-        spots.value = [...spots.value];
     }
     else {
         console.log("drag failed because missing data: ")
@@ -161,6 +169,20 @@ const createSpots = (createdPieces) => {
     }
     spots.value = newSpots
 }
+const resetGrid = () => {
+    let i = 0
+
+    let amountOfInvSpots = baseAnagram.value.length
+    let amountOfGridSpots = (baseAnagram.value.length * baseAnagram.value.length)
+
+    for(i; i < amountOfInvSpots; i++)
+    {
+        spots.value[i].piece = { ...pieces.value[i] };
+    }
+    for (i; i < (amountOfGridSpots + amountOfInvSpots); i++) {
+        spots.value[i].piece = null;
+    }
+}
 
 onMounted(setupBoard);
 onMounted(fetchDictionary);
@@ -178,6 +200,7 @@ body {
 }
 
 .spot-grid {
+    box-sizing: border-box;
     display: grid;
     width: 80vmin;
     height: 80vmin;
@@ -192,10 +215,10 @@ body {
 }
 
 .spot-inv {
+    box-sizing: border-box;
     display: grid;
     width: 80vmin;
     height: calc(80vmin / var(--grid-columns));
-    aspect-ratio: 1;
     grid-template-rows: repeat(var(--grid-rows), 1fr);
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     align-items: center;
@@ -206,7 +229,8 @@ body {
 }
 
 .piece {
-    box-sizing: content-box;
+    box-sizing: border-box;
+    aspect-ratio: 1;
     display: grid;
     justify-content: center;
     align-items: center;
@@ -217,7 +241,8 @@ body {
 }
 
 .spot {
-    box-sizing: content-box;
+    box-sizing: border-box;
+    aspect-ratio: 1;
     display: grid;
     justify-content: center;
     align-items: center;
