@@ -191,8 +191,8 @@ const resetGrid = () => {
 }
 const validateGrid = () => {
     const readWordXA = readGrid(true, true)
-    const readWordXD = readGrid(true, false) 
-    const readWordYA = readGrid(false, true) 
+    const readWordXD = readGrid(true, false)
+    const readWordYA = readGrid(false, true)
     const readWordYD = readGrid(false, false)
 
     const XAIsWord = (dictionary.value.indexOf(readWordXA) != -1)
@@ -200,10 +200,13 @@ const validateGrid = () => {
     const YAIsWord = (dictionary.value.indexOf(readWordYA) != -1)
     const YDIsWord = (dictionary.value.indexOf(readWordYD) != -1)
 
-    console.log("is " + ((XAIsWord) ? "" : "not ")+ "a word read horizontal ascending: " + readWordXA)
-    console.log("is " + ((XDIsWord) ? "" : "not ")+ "a word read horizontal descending: " + readWordXD)
-    console.log("is " + ((YAIsWord) ? "" : "not ")+ "a word read vertical ascending: " + readWordYA)
-    console.log("is " + ((YDIsWord) ? "" : "not ")+ "a word read vertical descending: " + readWordYD)
+    console.log("is " + ((XAIsWord) ? "" : "not ") + "a word read horizontal ascending: " + readWordXA)
+    console.log("is " + ((XDIsWord) ? "" : "not ") + "a word read horizontal descending: " + readWordXD)
+    console.log("is " + ((YAIsWord) ? "" : "not ") + "a word read vertical ascending: " + readWordYA)
+    console.log("is " + ((YDIsWord) ? "" : "not ") + "a word read vertical descending: " + readWordYD)
+
+    const sudokuValid = validateSudokuRule()
+    console.log("sudoku rule " + ((sudokuValid) ? "" : "in") + "valid")
 }
 const readGrid = (horizontal, ascending) => {
     const size = baseAnagram.value.length
@@ -212,7 +215,6 @@ const readGrid = (horizontal, ascending) => {
     let x, y
 
     for (y = (ascending) ? 0 : size - 1; y < size && y >= 0; y += (ascending) ? 1 : -1) {
-
         for (x = (ascending) ? 0 : size - 1; x < size && x >= 0; x += (ascending) ? 1 : -1) {
             const readPiece = (spots.value[(size + y * ((horizontal) ? 1 : size) + x * ((horizontal) ? size : 1))]).piece
             const readLetter = (readPiece == null) ? "" : readPiece.char
@@ -221,9 +223,32 @@ const readGrid = (horizontal, ascending) => {
     }
     return readWord
 }
+const validateSudokuRule = () => { // exactly 1 letter in a given row or column
+    const size = baseAnagram.value.length
 
-onMounted(setupGrid);
-onMounted(fetchDictionary);
+    let sudokuValidity = true
+    let x, y
+
+    for (y = 0; y < size; y++) {
+        let rowHasPiece = false
+        let colHasPiece = false
+        for (x = 0; x < size; x++) {
+            if ((spots.value[(size + y * size + x)]).piece != null) {
+                if (rowHasPiece) sudokuValidity = false
+                else rowHasPiece = true
+            }
+            if ((spots.value[(size + x * size + y)]).piece != null) {
+                if (colHasPiece) sudokuValidity = false
+                else colHasPiece = true
+            }
+        }
+        if (rowHasPiece == false || colHasPiece == false) sudokuValidity = false
+    }
+    return sudokuValidity
+}
+
+    onMounted(setupGrid);
+    onMounted(fetchDictionary);
 </script>
 
 <style scoped>
