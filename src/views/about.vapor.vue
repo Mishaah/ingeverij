@@ -1,6 +1,7 @@
 <template>
 
     <button type="button" @click="resetGrid()">reset grid</button>
+    <button type="button" @click="shuffleCharacters()">shuffle characters</button>
     <button type="button" @click="validateGrid()">validate grid</button>
     <button type="button" @click="setupGrid()">new anagram</button>
 
@@ -189,16 +190,27 @@ const resetGrid = () => {
         spots.value[i].piece = null;
     }
 }
+const shuffleCharacters = () => {
+    let index = baseAnagram.value.length
+    resetGrid()
+
+    while (index != 0) {
+        let randomIndex = Math.floor(Math.random() * index)
+        index--
+
+        [spots.value[index].piece, spots.value[randomIndex].piece] = [spots.value[randomIndex].piece, spots.value[index].piece]
+    }
+}
 const validateGrid = () => {
     const readWordXA = readGrid(true, true)
     const readWordXD = readGrid(true, false)
     const readWordYA = readGrid(false, true)
     const readWordYD = readGrid(false, false)
 
-    const XAIsWord = (dictionary.value.indexOf(readWordXA) != -1)
-    const XDIsWord = (dictionary.value.indexOf(readWordXD) != -1)
-    const YAIsWord = (dictionary.value.indexOf(readWordYA) != -1)
-    const YDIsWord = (dictionary.value.indexOf(readWordYD) != -1)
+    const XAIsWord = (dictionary.value.indexOf(readWordXA) != -1) * readWordXA.length > 0
+    const XDIsWord = (dictionary.value.indexOf(readWordXD) != -1) * readWordXD.length > 0
+    const YAIsWord = (dictionary.value.indexOf(readWordYA) != -1) * readWordYA.length > 0
+    const YDIsWord = (dictionary.value.indexOf(readWordYD) != -1) * readWordYD.length > 0
 
     console.log("is " + ((XAIsWord) ? "" : "not ") + "a word read horizontal ascending: " + readWordXA)
     console.log("is " + ((XDIsWord) ? "" : "not ") + "a word read horizontal descending: " + readWordXD)
@@ -247,8 +259,8 @@ const validateSudokuRule = () => { // exactly 1 letter in a given row or column
     return sudokuValidity
 }
 
-    onMounted(setupGrid);
-    onMounted(fetchDictionary);
+onMounted(setupGrid);
+onMounted(fetchDictionary);
 </script>
 
 <style scoped>
