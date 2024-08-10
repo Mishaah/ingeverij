@@ -5,36 +5,48 @@
     <button type="button" @click="validateGrid()">validate grid</button>
     <button type="button" @click="setupGrid()">new anagram</button>
 
+    <div class="clue"> 
+        {{ anagram.clue }}
+    </div>
+
     <div class="spot-grid" :style="{
         '--grid-rows': baseAnagram.length,
         '--grid-columns': baseAnagram.length
     }">
+
         <div v-for="spot in spots.slice(baseAnagram.length)" :key="spot.id" class="spot" @drop="onDrop($event, spot.id)"
             @dragenter.prevent @dragover.prevent>
-            <div v-if="spot.piece" :key="spot.piece.id" class="piece" @dragstart="startDrag($event, spot.piece.id)"
-                draggable="true">
-                <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle" dominant-baseline="middle">
-                    <text x="50" y="50" font-size="300%">
-                        {{ spot.piece.char }}
-                    </text>
-                </svg>
-            </div>
+            <transition-group name="move" tag="div" class="piece-container" @before-enter="beforeEnter" @enter="enter">
+                <div v-if="spot.piece" :key="spot.piece.id" class="piece" @dragstart="startDrag($event, spot.piece.id)"
+                    draggable="true">
+                    <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle"
+                        dominant-baseline="middle">
+                        <text x="50" y="50" font-size="300%">
+                            {{ spot.piece.char }}
+                        </text>
+                    </svg>
+                </div>
+            </transition-group>
         </div>
     </div>
     <div class="spot-inv" :style="{
         '--grid-rows': 1,
         '--grid-columns': baseAnagram.length
     }">
+
         <div v-for="spot in spots.slice(0, baseAnagram.length)" :key="spot.id" class="spot"
             @drop="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
-            <div v-if="spot.piece" :key="spot.piece.id" class="piece" @dragstart="startDrag($event, spot.piece.id)"
-                draggable="true">
-                <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle" dominant-baseline="middle">
-                    <text x="50" y="50" font-size="300%">
-                        {{ spot.piece.char }}
-                    </text>
-                </svg>
-            </div>
+            <transition-group name="move" tag="div" class="piece-container" @before-enter="beforeEnter" @enter="enter">
+                <div v-if="spot.piece" :key="spot.piece.id" class="piece" @dragstart="startDrag($event, spot.piece.id)"
+                    draggable="true">
+                    <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle"
+                        dominant-baseline="middle">
+                        <text x="50" y="50" font-size="300%">
+                            {{ spot.piece.char }}
+                        </text>
+                    </svg>
+                </div>
+            </transition-group>
         </div>
     </div>
 
@@ -79,6 +91,53 @@ let baseAnagram = ref('');
 let pieces = ref([])
 let spots = ref([])
 
+const beforeEnter = (el) => {
+    el.style.position = 'absolute';
+
+    requestAnimationFrame(() => {
+        const startRect = el.getBoundingClientRect();
+        el.dataset.startX = startRect.left + window.scrollX;
+        el.dataset.startY = startRect.top + window.scrollY;
+        console.log(el.dataset.startX)
+        console.log(el.dataset.startY)
+    });
+}
+
+const enter = (el, done) => {
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const startX = parseFloat(el.dataset.startX);
+            const startY = parseFloat(el.dataset.startY);
+
+            const endRect = el.getBoundingClientRect();
+            const deltaX = startX - endRect.left - window.scrollX;
+            const deltaY = startY - endRect.top - window.scrollY;
+
+            console.log("sx: " + startX)
+            console.log("sy: " + startY)
+            console.log("dx: " + deltaX)
+            console.log("dy: " + deltaY)
+            console.log(endRect.left)
+            console.log(endRect.top)
+
+            el.animate(
+                [
+                    { transform: `translate(${deltaX}px, ${deltaY}px)` },
+                    { transform: `translate(0px, 0px)` }
+                ],
+                {
+                    duration: 300,
+                    fill: 'forwards'
+                }
+            )
+            el.style.position = 'relative';
+
+            el.addEventListener('animationend', done, { once: true });
+        });
+    });
+}
+
 const startDrag = (event, pieceID) => {
     console.log("piece ID: " + pieceID)
 
@@ -108,6 +167,8 @@ const onDrop = (event, spotID) => {
 
         oldSpot.piece = newSpot.piece == null ? null : { ...newSpot.piece };
         newSpot.piece = { ...draggedPiece };
+
+        spots.value = [...spots.value] //necessary for reactivity?
     }
     else {
         console.log("drag failed because missing data: ")
@@ -119,15 +180,17 @@ const onDrop = (event, spotID) => {
 
 const setupGrid = async () => {
     if (anagrams.value.length == 0) await fetchAnagrams();
-    chooseAnagram(); // 18 is easy example
+    chooseAnagram();
     createPieces();
     createSpots(pieces.value);
 }
 const fetchAnagrams = async () => {
     try {
-        const response = await fetch('/english_anagrams_simple.txt');
-        const data = await response.text();
-        anagrams.value = data.split(/\r\n|\r|\n/);
+        const response = await fetch('/dutch_anagrams_curated.json');
+        //const data = await response.text();
+        //anagrams.value = data.split(/\r\n|\r|\n/);
+        const data = await response.json();
+        anagrams.value = data;
     } catch (error) {
         console.error('Error fetching anagrams:', error);
     }
@@ -149,7 +212,7 @@ const chooseAnagram = (index = -1) => {
     else {
         anagram.value = anagrams.value[Math.floor(Math.random() * anagrams.value.length)]
     }
-    baseAnagram.value = anagram.value.match(/^(\S+)\s(.*)/).slice(1)[0].split("").sort().join("");
+    baseAnagram.value = anagram.value.words[0].split("").sort().join("");
     console.log(anagram.value)
 }
 const createPieces = () => {
@@ -236,6 +299,7 @@ const readGrid = (horizontal, ascending) => {
     return readWord
 }
 const validateSudokuRule = () => { // exactly 1 letter in a given row or column
+    //make return an array of all invalid?
     const size = baseAnagram.value.length
 
     let sudokuValidity = true
@@ -277,8 +341,8 @@ body {
 .spot-grid {
     box-sizing: border-box;
     display: grid;
-    width: 80vmin;
-    height: 80vmin;
+    width: 70vmin;
+    height: 70vmin;
     aspect-ratio: 1;
     grid-template-rows: repeat(var(--grid-rows), 1fr);
     grid-template-columns: repeat(var(--grid-columns), 1fr);
@@ -292,8 +356,9 @@ body {
 .spot-inv {
     box-sizing: border-box;
     display: grid;
-    width: 80vmin;
-    height: calc(80vmin / var(--grid-columns));
+    width: 70vmin;
+    height: calc(70vmin / var(--grid-columns));
+    aspect-ratio: 1;
     grid-template-rows: repeat(var(--grid-rows), 1fr);
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     align-items: center;
@@ -321,9 +386,51 @@ body {
     display: grid;
     justify-content: center;
     align-items: center;
-    border: 1px solid black;
+    border: 2px solid black;
     width: 100%;
     height: 100%;
     user-select: none;
+    position: relative;
 }
+
+.piece-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.clue {
+    font-size: 50px;
+    display: flex;
+    width: 70vmin;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0px;
+}
+
+/* .move-enter-active, .move-leave-active {
+  transition: transform 0.5s;
+}
+
+.move-enter-from, .move-leave-to {
+  transform: translate(0, 0);
+} */
+/* .move-enter-active,
+.move-leave-active {
+    transition: transform 0.3s ease-in-out;
+}
+
+.move-enter-from{
+    transform: translate(0%)
+}
+.move-leave-to {
+    transform: translate(100%)
+}
+
+.move-enter-to {
+    transform: translate(100%);
+}
+.move-leave-from {
+    transform: translate(0%);
+} */
 </style>
