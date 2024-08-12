@@ -54,7 +54,8 @@
         <div class="board-buttons">
             <button class="board-button" type="button" @click="resetGrid()">Reset</button>
             <button class="board-button" type="button" @click="shuffleCharacters()">Shuffle</button>
-            <button class="board-button" type="button" @click="validateGrid()" :style="{ backgroundColor: isCorrect ? 'lightgreen' : 'white'}">Try</button>
+            <button class="board-button" type="button" @click="validateGrid()"
+                :style="{ backgroundColor: isCorrect ? 'lightgreen' : 'white' }">Try</button>
             <button class="board-button" type="button" @click="setupGrid()">New</button>
         </div>
     </div>
