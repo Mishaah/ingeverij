@@ -2,12 +2,13 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import home from '@/views/home.vapor.vue'
 import about from '@/views/about.vapor.vue'
 import anagrammar from '@/views/anagrammar.vapor.vue'
+import contact from '@/views/contact.vapor.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     {
-      path: '/',
+      path: '/home',
       name: 'homeView',
       component: home,
     },
@@ -17,9 +18,14 @@ const router = createRouter({
       component: about,
     },
     {
-      path: '/anagrammar',
+      path: '/',
       name: 'anagrammarView',
       component: anagrammar,
+    },
+    {
+      path: '/contact',
+      name: 'contactView',
+      component: contact,
     },
   ],
 })
