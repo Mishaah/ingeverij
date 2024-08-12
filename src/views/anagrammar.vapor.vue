@@ -6,18 +6,20 @@
             {{ anagram.clue }}
         </div>
 
-        
+
         <div class="spot-board" :style="{
             '--board-rows': baseAnagram.length,
             '--board-columns': baseAnagram.length
         }">
 
             <div v-for="spot in spots.slice(baseAnagram.length)" :key="spot.id" class="spot"
-                @drop="onDrop($event, spot.id)" @touchend="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
+                @drop="onDrop($event, spot.id)" 
+                @touchend="onDropMobile($event, spot.id)" @dragenter.prevent @dragover.prevent>
                 <transition-group name="move" tag="div" class="piece-container" @before-enter="beforeEnter"
                     @enter="enter">
                     <div v-if="spot.piece" :key="spot.piece.id" class="piece"
-                        @dragstart="startDrag($event, spot.piece.id)" @touchmove="startDrag($event, spot.piece.id)" draggable="true">
+                        @dragstart="startDrag($event, spot.piece.id)"
+                        @touchstart="startDragMobile($event, spot.piece.id)" draggable="true">
                         <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle"
                             dominant-baseline="middle">
                             <text x="50" y="50" font-size="300%">
@@ -36,11 +38,13 @@
         }">
 
             <div v-for="spot in spots.slice(0, baseAnagram.length)" :key="spot.id" class="spot"
-                @drop="onDrop($event, spot.id)" @touchend="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
+                @drop="onDrop($event, spot.id)" 
+                @touchend="onDropMobile($event, spot.id)" @dragenter.prevent @dragover.prevent>
                 <transition-group name="move" tag="div" class="piece-container" @before-enter="beforeEnter"
                     @enter="enter">
                     <div v-if="spot.piece" :key="spot.piece.id" class="piece"
-                        @dragstart="startDrag($event, spot.piece.id)" @touchmove="startDrag($event, spot.piece.id)" draggable="true">
+                        @dragstart="startDrag($event, spot.piece.id)"
+                        @touchstart="startDragMobile($event, spot.piece.id)" draggable="true">
                         <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle"
                             dominant-baseline="middle">
                             <text x="50" y="50" font-size="300%">
@@ -127,6 +131,13 @@ let spots = ref([])
 //    });
 //}
 
+let dataTransferDropEffect = ''
+let dataTransferEffectAllowed = ''
+
+let dataTransferPieceID = ''
+let dataTransferOldSpotID = ''
+
+
 const startDrag = (event, pieceID) => {
     console.log("piece ID: " + pieceID)
 
@@ -138,6 +149,20 @@ const startDrag = (event, pieceID) => {
 
     event.dataTransfer.setData('pieceID', pieceID)
     event.dataTransfer.setData('oldSpotID', oldSpotID)
+}
+const startDragMobile = (event, pieceID) => {
+    console.log("piece ID: " + pieceID)
+
+    const oldSpotID = spots.value.findIndex(spot => spot.piece && spot.piece.id === pieceID);
+    console.log("old spot ID: " + pieceID)
+
+    dataTransferDropEffect = 'move'
+    dataTransferEffectAllowed = 'move'
+
+    dataTransferDropEffect = ''
+    dataTransferEffectAllowed = ''
+    dataTransferPieceID = pieceID
+    dataTransferOldSpotID = oldSpotID
 }
 const onDrop = (event, spotID) => {
     console.log("spot ID: " + spotID)
@@ -165,6 +190,40 @@ const onDrop = (event, spotID) => {
         console.log(oldSpot)
         console.log(newSpot)
     }
+
+    isCorrect.value = false
+}
+const onDropMobile = (event, spotID) => {
+    console.log("spot ID: " + spotID)
+
+    const draggedPieceID = dataTransferPieceID
+    const oldSpotID = dataTransferOldSpotID
+
+    if (oldSpotID == spotID) return
+
+    const draggedPiece = pieces.value[draggedPieceID]
+    const oldSpot = spots.value[oldSpotID]
+    const newSpot = spots.value[spotID]
+
+    if (draggedPiece && oldSpot && newSpot) {
+        console.log("setting piece " + draggedPieceID + " to spot " + spotID);
+
+        oldSpot.piece = newSpot.piece == null ? null : { ...newSpot.piece };
+        newSpot.piece = { ...draggedPiece };
+
+        spots.value = [...spots.value] //necessary for reactivity?
+    }
+    else {
+        console.log("drag failed because missing data: ")
+        console.log(draggedPiece)
+        console.log(oldSpot)
+        console.log(newSpot)
+    }
+
+    dataTransferDropEffect = ''
+    dataTransferEffectAllowed = ''
+    dataTransferPieceID = ''
+    dataTransferOldSpotID = ''
 
     isCorrect.value = false
 }
@@ -400,9 +459,9 @@ const validateSudokuRule = () => { // exactly 1 letter in a given row or column
     return sudokuValidity
 }
 
-onMounted(()=>{
+onMounted(() => {
     setupGrid()
-    fetchDictionary() 
+    fetchDictionary()
 })
 </script>
 
