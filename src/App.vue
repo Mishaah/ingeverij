@@ -10,7 +10,7 @@ import { RouterLink, RouterView } from 'vue-router'
     <nav class="navbar">
       <div class="navbar-children">
         <div><router-link :to="{ name: 'homeView' }">Home</router-link></div>
-        <div><router-link :to="{ name: 'aboutView' }">About</router-link></div>
+        <!-- <div><router-link :to="{ name: 'aboutView' }">About</router-link></div> -->
         <div><router-link :to="{ name: 'anagrammarView' }">Anagrammar</router-link></div>
       </div>
     </nav>
