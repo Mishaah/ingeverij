@@ -6,7 +6,7 @@
             {{ anagram.clue }}
         </div>
 
-
+        
         <div class="spot-board" :style="{
             '--board-rows': baseAnagram.length,
             '--board-columns': baseAnagram.length
@@ -68,6 +68,7 @@ import { ref, onMounted, computed } from 'vue';
 
 const anagrams = ref([]);
 const dictionary = ref('');
+//TODO: onderscheid maken clue en geen clue
 
 let anagram = ref('');
 let baseAnagram = ref('');
@@ -76,6 +77,8 @@ let isCorrect = ref(false)
 
 let pieces = ref([])
 let spots = ref([])
+
+
 
 //const beforeEnter = (el) => {
 //    el.style.position = 'absolute';
@@ -187,7 +190,7 @@ const fetchAnagrams = async () => {
 };
 const fetchDictionary = async () => {
     try {
-        const response = await fetch('/english_dictionary.txt');
+        const response = await fetch('/dutch_dictionary.txt');
         const data = await response.text();
         dictionary.value = data;
     } catch (error) {
@@ -333,8 +336,10 @@ const validateSudokuRule = () => { // exactly 1 letter in a given row or column
     return sudokuValidity
 }
 
-onMounted(setupGrid);
-onMounted(fetchDictionary);
+onMounted(()=>{
+    setupGrid()
+    fetchDictionary() 
+})
 </script>
 
 <style scoped>
