@@ -13,11 +13,11 @@
         }">
 
             <div v-for="spot in spots.slice(baseAnagram.length)" :key="spot.id" class="spot"
-                @drop="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
+                @drop="onDrop($event, spot.id)" @touchend="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
                 <transition-group name="move" tag="div" class="piece-container" @before-enter="beforeEnter"
                     @enter="enter">
                     <div v-if="spot.piece" :key="spot.piece.id" class="piece"
-                        @dragstart="startDrag($event, spot.piece.id)" draggable="true">
+                        @dragstart="startDrag($event, spot.piece.id)" @touchmove="startDrag($event, spot.piece.id)" draggable="true">
                         <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle"
                             dominant-baseline="middle">
                             <text x="50" y="50" font-size="300%">
@@ -36,11 +36,11 @@
         }">
 
             <div v-for="spot in spots.slice(0, baseAnagram.length)" :key="spot.id" class="spot"
-                @drop="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
+                @drop="onDrop($event, spot.id)" @touchend="onDrop($event, spot.id)" @dragenter.prevent @dragover.prevent>
                 <transition-group name="move" tag="div" class="piece-container" @before-enter="beforeEnter"
                     @enter="enter">
                     <div v-if="spot.piece" :key="spot.piece.id" class="piece"
-                        @dragstart="startDrag($event, spot.piece.id)" draggable="true">
+                        @dragstart="startDrag($event, spot.piece.id)" @touchmove="startDrag($event, spot.piece.id)" draggable="true">
                         <svg viewBox="0 0 100 100" width="100%" height="100%" text-anchor="middle"
                             dominant-baseline="middle">
                             <text x="50" y="50" font-size="300%">
@@ -296,6 +296,70 @@ const validateGrid = () => {
 
     isCorrect.value = anagrammarValid; //TODO: make more permanent solution
 }
+//const validateGrid = () => {
+//  const sudokuValid = validateSudokuRule()
+//  console.log('sudoku rule ' + (sudokuValid ? '' : 'in') + 'valid')
+//
+//  const readWords = {
+//    readWordXA: '',
+//    readWordXD: '',
+//    readWordYA: '',
+//    readWordYD: '',
+//  }
+//  const entries = {
+//    xa: {
+//      word: '',
+//      valid: false,
+//    },
+//    xd: {
+//      word: '',
+//      valid: false,
+//    },
+//    ya: {
+//      word: '',
+//      valid: false,
+//    },
+//    yd: {
+//      word: '',
+//      valid: false,
+//    },
+//  }
+//  entries.xa.word = readGrid(true)
+//  entries.xd.word = readGrid(true).split('').reverse().join('')
+//  entries.ya.word = readGrid(false)
+//  entries.yd.word = readGrid(false).split('').reverse().join('')
+//
+//  const wordsAreValid = {
+//    XAIsWord: false,
+//    XDIsWord: false,
+//    YAIsWord: false,
+//    YDIsWord: false,
+//  }
+//
+//  entries.xa.valid =
+//    (dictionary.value.indexOf(entries.xa.word) != -1) * entries.xa.word.length >
+//    0
+//  entries.xd.valid =
+//    (dictionary.value.indexOf(entries.xd.word) != -1) * entries.xd.word.length >
+//    0
+//  entries.ya.valid =
+//    (dictionary.value.indexOf(entries.ya.word) != -1) * entries.ya.word.length >
+//    0
+//  entries.yd.valid =
+//    (dictionary.value.indexOf(entries.yd.word) != -1) * entries.yd.word.length >
+//    0
+//  console.table(entries)
+//
+//  if (!sudokuValid) {
+//    return false
+//  }
+//  //TODO
+//  const anagrammarValid =
+//    sudokuValid && Object.values(wordsAreValid).filter(Boolean).length >= 2
+//  console.log('anagrammar is ' + (anagrammarValid ? '' : 'in') + 'valid')
+//
+//  isCorrect.value = anagrammarValid //TODO: make more permanent solution
+//}
 const readGrid = (horizontal, ascending) => {
     const size = baseAnagram.value.length
 
