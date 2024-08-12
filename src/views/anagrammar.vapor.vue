@@ -54,7 +54,7 @@
         <div class="board-buttons">
             <button class="board-button" type="button" @click="resetGrid()">Reset</button>
             <button class="board-button" type="button" @click="shuffleCharacters()">Shuffle</button>
-            <button class="board-button" type="button" @click="validateGrid()" :style="{ backgroundColor: isCorrect ? 'green' : 'white'}">Try</button>
+            <button class="board-button" type="button" @click="validateGrid()" :style="{ backgroundColor: isCorrect ? 'lightgreen' : 'white'}">Try</button>
             <button class="board-button" type="button" @click="setupGrid()">New</button>
         </div>
     </div>
@@ -161,6 +161,8 @@ const onDrop = (event, spotID) => {
         console.log(oldSpot)
         console.log(newSpot)
     }
+
+    isCorrect.value = false
 }
 
 const setupGrid = async () => {
